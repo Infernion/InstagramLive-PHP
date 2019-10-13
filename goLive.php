@@ -180,7 +180,6 @@ registerCommand($commandData, $commandInfo, 'block', "Blocks a user from your ac
 //Load config and utils
 require_once __DIR__ . '/utils.php';
 require_once __DIR__ . '/config.php';
-require_once __DIR__ . '/json.php';
 
 //Dump json-encoded command line arguments
 if (dumpCli) {
@@ -189,6 +188,11 @@ if (dumpCli) {
 }
 
 if (dumpCmds) {
+    if (Utils::isWindows()) {
+        print json_encode($commandInfo);
+        exit(0);
+    }
+    require_once __DIR__ . '/json.php';
     $jsonHelper = new JsonHelper();
     print $jsonHelper->encode($commandInfo);
     exit(0);
