@@ -220,7 +220,7 @@ if (dump) {
 Utils::existsOrError(__DIR__ . '/vendor/autoload.php', "Instagram API Files");
 Utils::existsOrError(__DIR__ . '/obs.php', "OBS Integration");
 
-Utils::log("Loading InstagramLive-PHP v" . scriptVersion . "...");
+Utils::log("Loading InstagramLive-PHP v" . scriptVersion . "-" . scriptFlavor . " (" . scriptVersionCode . ")...");
 
 //Check for a new update
 if (Utils::checkForUpdate(scriptVersionCode, scriptFlavor)) {
