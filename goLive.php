@@ -341,6 +341,8 @@ function preparationFlow($helper, $args, $commandData, $streamTotalSec = 0, $aut
             //Normal livestream creation flow
             Utils::log("Livestream: Creating livestream...");
             $stream = $ig->live->create(OBS_X, OBS_Y);
+            define('maxTime', $stream->isMaxTimeInSeconds() ? ($stream->getMaxTimeInSeconds() - 100) : 3480);
+            define('heartbeatInterval', $stream->isHeartbeatInterval() ? $stream->getHeartbeatInterval() : 2);
 
             $broadcastId = $stream->getBroadcastId();
             $streamUploadUrl = $stream->getUploadUrl();
@@ -364,6 +366,8 @@ function preparationFlow($helper, $args, $commandData, $streamTotalSec = 0, $aut
             $streamKey = $recoveryData['streamKey'];
             $obsAutomation = (bool)$recoveryData['obs'];
             $helper = unserialize($recoveryData['obsObject']);
+            define('maxTime', 3480);
+            define('heartbeatInterval', 2);
         }
 
         //OBS integration prompt
@@ -694,7 +698,7 @@ function livestreamingFlow($ig, $broadcastId, $streamUrl, $streamKey, $obsAuto, 
         }
 
         //Calculate Times for Hour-Cutoff
-        if (!bypassCutoff && (time() - $startTime) >= 3480) {
+        if (!bypassCutoff && (time() - $startTime) >= maxTime) {
             endLivestreamFlow($ig, $broadcastId, '', $obsAuto, $helper, 0, $commentCount, $likeCount, $likeBurstCount, false);
             Utils::log("Livestream: The livestream has ended due to Instagram's one hour time limit!");
             $archived = "yes";
@@ -717,7 +721,7 @@ function livestreamingFlow($ig, $broadcastId, $streamUrl, $streamKey, $obsAuto, 
                 preparationFlow($helper, $args, $commandData, $streamTotalSec, $autoPin);
             }
             Utils::log("Command Line: Please close the console window!");
-            sleep(2);
+            sleep(heartbeatInterval);
             exit(0);
         }
 
