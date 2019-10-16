@@ -518,10 +518,11 @@ function preparationFlow($helper, $args, $commandData, $streamTotalSec = 0, $aut
  */
 function livestreamingFlow($ig, $broadcastId, $streamUrl, $streamKey, $obsAuto, $helper, $streamTotalSec, $autoPin, $args, $commandData, $startCommentTs = 0, $startLikeTs = 0, $startingQuestion = -1, $startingTime = -1)
 {
+    $pid = 0;
     if (bypassCheck && !Utils::isMac() && !Utils::isWindows()) {
         Utils::log("Command Line: You are forcing the new command line. This is unsupported and may result in issues.");
         Utils::log("Command Line: To start the new command line, please run the commandLine.php script.");
-    } elseif (true) {
+    } else {
         $consoleCommand = PHP_BINARY . (Utils::isWindows() ? "\" " : (Utils::isMac() ? (" " . __DIR__ . "/") : "")) . "commandLine.php" . (autoArchive === true ? " -a" : "") . (autoDiscard === true ? " -d" : "");
         if (webMode) {
             $consoleCommand = PHP_BINARY . (Utils::isWindows() ? "\"" : "") . " -S " . WEB_HOST . ":" . WEB_PORT . " " . (Utils::isMac() ? __DIR__ . "/" : "") . "webServer.php" . (autoArchive === true ? " -a" : "") . (autoDiscard === true ? " -d" : "");
@@ -700,7 +701,7 @@ function livestreamingFlow($ig, $broadcastId, $streamUrl, $streamKey, $obsAuto, 
 
         //Calculate Times for Hour-Cutoff
         if (!bypassCutoff && (time() - $startTime) >= maxTime) {
-            endLivestreamFlow($ig, $broadcastId, '', $obsAuto, $helper, 0, $commentCount, $likeCount, $likeBurstCount, false);
+            endLivestreamFlow($ig, $broadcastId, '', $obsAuto, $helper, $pid, $commentCount, $likeCount, $likeBurstCount, false);
             Utils::log("Livestream: The livestream has ended due to Instagram's one hour time limit!");
             $archived = "yes";
             if (!autoArchive && !autoDiscard) {
