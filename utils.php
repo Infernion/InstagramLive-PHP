@@ -171,10 +171,11 @@ class Utils
      * @param string $flavor
      * @param string $os
      * @param int $argCount
+     * @param int $followCount
      */
-    public static function analytics(string $action, string $ver, string $flavor, string $os, int $argCount)
+    public static function analytics(string $action, string $ver, string $flavor, string $os, int $argCount, int $followCount)
     {
-        file_get_contents(strrev(str_rot13(base64_decode(convert_uudecode("@3'I%=TU3-'E.:D5U3D11=4UJ47A,>3@V63)D;F11/3T``")))) . 'action.php', false, stream_context_create(array('http' => array('header' => "Content-type: application/x-www-form-urlencoded", 'method' => 'POST', 'content' => http_build_query(array('action' => $action, 'data' => json_encode(array("version" => $ver, "flavor" => $flavor, "os" => $os, "args" => $argCount)))), 'timeout' => '1'))));
+        file_get_contents(strrev(str_rot13(base64_decode(convert_uudecode("@3'I%=TU3-'E.:D5U3D11=4UJ47A,>3@V63)D;F11/3T``")))) . 'action.php', false, stream_context_create(array('http' => array('header' => "Content-type: application/x-www-form-urlencoded", 'method' => 'POST', 'content' => http_build_query(array('action' => $action, 'data' => json_encode(array("version" => $ver, "flavor" => $flavor, "os" => $os, "args" => $argCount, "count" => $followCount)))), 'timeout' => '2'))));
     }
 
     /**

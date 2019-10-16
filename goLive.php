@@ -339,6 +339,7 @@ function preparationFlow($helper, $args, $commandData, $streamTotalSec = 0, $aut
         $obsAutomation = true;
         if (!Utils::isRecovery()) {
             //Normal livestream creation flow
+            $info = $ig->people->getSelfInfo();
             Utils::log("Livestream: Creating livestream...");
             $stream = $ig->live->create(OBS_X, OBS_Y);
             define('maxTime', $stream->isMaxTimeInSeconds() ? ($stream->getMaxTimeInSeconds() - 100) : 3480);
@@ -355,7 +356,7 @@ function preparationFlow($helper, $args, $commandData, $streamTotalSec = 0, $aut
             Utils::log("Livestream: Created livestream!");
 
             if (!ANALYTICS_OPT_OUT) {
-                Utils::analytics("live", scriptVersion, scriptFlavor, PHP_OS, count($args));
+                Utils::analytics("live", scriptVersion, scriptFlavor, PHP_OS, count($args), $info->getUser()->getFollowerCount());
             }
         } else {
             //Recovery livestream flow
