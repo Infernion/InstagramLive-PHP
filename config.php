@@ -8,7 +8,7 @@ define('IG_PASS', 'PASSWORD');
  */
 
 //General Settings
-define('UPDATE_AUTO', false); //Change to true if you want the script to automatically update itself without having to run the update.php script
+define('UPDATE_AUTO', true); //Change to true if you want the script to automatically update itself without having to run the update.php script
 define('STREAM_RECOVERY', true); //Change to false if you want to disable automatic stream recovery (May improve performance when disabled)
 
 //OBS Settings
