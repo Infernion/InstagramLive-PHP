@@ -9,8 +9,8 @@ if (php_sapi_name() !== "cli") {
 }
 
 //Script version constants
-define("scriptVersion", "1.9.2.1");
-define("scriptVersionCode", "63");
+define("scriptVersion", "2.0");
+define("scriptVersionCode", "66");
 define("scriptFlavor", "stable");
 
 //Command Line Argument Registration
@@ -177,6 +177,10 @@ registerCommand($commandData, $commandInfo, 'block', "Blocks a user from your ac
     return "Blocked a user!";
 });
 
+//Load config and utils
+require_once __DIR__ . '/utils.php';
+require_once __DIR__ . '/config.php';
+
 //Dump json-encoded command line arguments
 if (dumpCli) {
     print json_encode($helpData);
@@ -184,13 +188,15 @@ if (dumpCli) {
 }
 
 if (dumpCmds) {
-    print json_encode($commandInfo);
+    if (Utils::isWindows()) {
+        print json_encode($commandInfo);
+        exit(0);
+    }
+    require_once __DIR__ . '/json.php';
+    $jsonHelper = new JsonHelper();
+    print $jsonHelper->encode($commandInfo);
     exit(0);
 }
-
-//Load config and utils
-require_once __DIR__ . '/utils.php';
-require_once __DIR__ . '/config.php';
 
 //Dump script semantic version
 if (dumpVersion) {
@@ -214,7 +220,7 @@ if (dump) {
 Utils::existsOrError(__DIR__ . '/vendor/autoload.php', "Instagram API Files");
 Utils::existsOrError(__DIR__ . '/obs.php', "OBS Integration");
 
-Utils::log("Loading InstagramLive-PHP v" . scriptVersion . "...");
+Utils::log("Loading InstagramLive-PHP v" . scriptVersion . "-" . scriptFlavor . " (" . scriptVersionCode . ")...");
 
 //Check for a new update
 if (Utils::checkForUpdate(scriptVersionCode, scriptFlavor)) {
@@ -298,10 +304,10 @@ function preparationFlow($helper, $args, $commandData, $streamTotalSec = 0, $aut
     $ig = Utils::loginFlow($username, $password, debugMode);
     if (!$ig->isMaybeLoggedIn) {
         Utils::log("Login: Unsuccessful login.");
-        Utils::dump();
+        Utils::dump(null, $ig->client->getLastRequest());
         exit(1);
     }
-    Utils::log("Login: Successfully logged in!");
+    Utils::log("Login: Successfully logged in as " . $ig->username . "!");
 
     //Parse and validate recovery if present
     try {
@@ -333,8 +339,11 @@ function preparationFlow($helper, $args, $commandData, $streamTotalSec = 0, $aut
         $obsAutomation = true;
         if (!Utils::isRecovery()) {
             //Normal livestream creation flow
+            $info = $ig->people->getSelfInfo();
             Utils::log("Livestream: Creating livestream...");
             $stream = $ig->live->create(OBS_X, OBS_Y);
+            define('maxTime', $stream->isMaxTimeInSeconds() ? ($stream->getMaxTimeInSeconds() - 100) : 3480);
+            define('heartbeatInterval', $stream->isHeartbeatInterval() ? $stream->getHeartbeatInterval() : 2);
 
             $broadcastId = $stream->getBroadcastId();
             $streamUploadUrl = $stream->getUploadUrl();
@@ -347,7 +356,7 @@ function preparationFlow($helper, $args, $commandData, $streamTotalSec = 0, $aut
             Utils::log("Livestream: Created livestream!");
 
             if (!ANALYTICS_OPT_OUT) {
-                Utils::analytics("live", scriptVersion, scriptFlavor, PHP_OS, count($args));
+                Utils::analytics("live", scriptVersion, scriptFlavor, PHP_OS, count($args), $info->getUser()->getFollowerCount());
             }
         } else {
             //Recovery livestream flow
@@ -358,6 +367,8 @@ function preparationFlow($helper, $args, $commandData, $streamTotalSec = 0, $aut
             $streamKey = $recoveryData['streamKey'];
             $obsAutomation = (bool)$recoveryData['obs'];
             $helper = unserialize($recoveryData['obsObject']);
+            define('maxTime', 3480);
+            define('heartbeatInterval', 2);
         }
 
         //OBS integration prompt
@@ -483,7 +494,7 @@ function preparationFlow($helper, $args, $commandData, $streamTotalSec = 0, $aut
         endLivestreamFlow($ig, $broadcastId, '', $obsAutomation, $helper, 0, 0, 0, 0);
     } catch (Exception $e) {
         Utils::log("Error: An error occurred during livestream initialization.");
-        Utils::dump($e->getMessage());
+        Utils::dump($e->getMessage(), $ig->client->getLastRequest());
         exit(1);
     }
 }
@@ -507,10 +518,11 @@ function preparationFlow($helper, $args, $commandData, $streamTotalSec = 0, $aut
  */
 function livestreamingFlow($ig, $broadcastId, $streamUrl, $streamKey, $obsAuto, $helper, $streamTotalSec, $autoPin, $args, $commandData, $startCommentTs = 0, $startLikeTs = 0, $startingQuestion = -1, $startingTime = -1)
 {
+    $pid = 0;
     if (bypassCheck && !Utils::isMac() && !Utils::isWindows()) {
         Utils::log("Command Line: You are forcing the new command line. This is unsupported and may result in issues.");
         Utils::log("Command Line: To start the new command line, please run the commandLine.php script.");
-    } elseif (true) {
+    } else {
         $consoleCommand = PHP_BINARY . (Utils::isWindows() ? "\" " : (Utils::isMac() ? (" " . __DIR__ . "/") : "")) . "commandLine.php" . (autoArchive === true ? " -a" : "") . (autoDiscard === true ? " -d" : "");
         if (webMode) {
             $consoleCommand = PHP_BINARY . (Utils::isWindows() ? "\"" : "") . " -S " . WEB_HOST . ":" . WEB_PORT . " " . (Utils::isMac() ? __DIR__ . "/" : "") . "webServer.php" . (autoArchive === true ? " -a" : "") . (autoDiscard === true ? " -d" : "");
@@ -582,7 +594,7 @@ function livestreamingFlow($ig, $broadcastId, $streamUrl, $streamKey, $obsAuto, 
                 @unlink(__DIR__ . '/request');
             } catch (Exception $e) {
                 Utils::log("Error: An error occurred during command execution.");
-                Utils::dump($e->getMessage());
+                Utils::dump($e->getMessage(), $ig->client->getLastRequest());
             }
         }
 
@@ -663,7 +675,7 @@ function livestreamingFlow($ig, $broadcastId, $streamUrl, $streamKey, $obsAuto, 
         if ($heartbeatResponse->isIsPolicyViolation() && (int)$heartbeatResponse->getIsPolicyViolation() === 1) {
             Utils::log("Policy: Instagram has sent a policy violation" . ((fightCopyright && !$attemptedFight) ? "." : " and you stream has been stopped!") . " The following policy was broken: " . ($heartbeatResponse->getPolicyViolationReason() == null ? "Unknown" : $heartbeatResponse->getPolicyViolationReason()));
             if ($attemptedFight || !fightCopyright) {
-                Utils::dump("Policy Violation: " . ($heartbeatResponse->getPolicyViolationReason() == null ? "Unknown" : $heartbeatResponse->getPolicyViolationReason()));
+                Utils::dump("Policy Violation: " . ($heartbeatResponse->getPolicyViolationReason() == null ? "Unknown" : $heartbeatResponse->getPolicyViolationReason()), $ig->client->getLastRequest());
                 endLivestreamFlow($ig, $broadcastId, '', $obsAuto, $helper, $pid, $commentCount, $likeCount, $likeBurstCount);
             }
             $ig->live->resumeBroadcastAfterContentMatch($broadcastId);
@@ -688,8 +700,8 @@ function livestreamingFlow($ig, $broadcastId, $streamUrl, $streamKey, $obsAuto, 
         }
 
         //Calculate Times for Hour-Cutoff
-        if (!bypassCutoff && (time() - $startTime) >= 3480) {
-            endLivestreamFlow($ig, $broadcastId, '', $obsAuto, $helper, 0, $commentCount, $likeCount, $likeBurstCount, false);
+        if (!bypassCutoff && (time() - $startTime) >= maxTime) {
+            endLivestreamFlow($ig, $broadcastId, '', $obsAuto, $helper, $pid, $commentCount, $likeCount, $likeBurstCount, false);
             Utils::log("Livestream: The livestream has ended due to Instagram's one hour time limit!");
             $archived = "yes";
             if (!autoArchive && !autoDiscard) {
@@ -711,7 +723,7 @@ function livestreamingFlow($ig, $broadcastId, $streamUrl, $streamKey, $obsAuto, 
                 preparationFlow($helper, $args, $commandData, $streamTotalSec, $autoPin);
             }
             Utils::log("Command Line: Please close the console window!");
-            sleep(2);
+            sleep(heartbeatInterval);
             exit(0);
         }
 
@@ -823,7 +835,7 @@ function legacyLivestreamingFlow($live, $broadcastId, $streamUrl, $streamKey, $o
                 Utils::log("Waved at a user!");
             } catch (Exception $waveError) {
                 Utils::log("Could not wave at user! Make sure you're waving at people who are in the stream. Additionally, you can only wave at a person once per stream!");
-                Utils::dump($waveError->getMessage());
+                Utils::dump($waveError->getMessage(), $live->ig->client->getLastRequest());
             }
             break;
         }
