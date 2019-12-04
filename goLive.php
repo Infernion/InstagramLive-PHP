@@ -176,6 +176,11 @@ registerCommand($commandData, $commandInfo, 'block', "Blocks a user from your ac
     @$tick->ig->people->block($userId);
     return "Blocked a user!";
 });
+registerCommand($commandData, $commandInfo, 'hide', "Hides your streams and stories from a user", "User ID", function (StreamTick $tick) {
+    $userId = $tick->values[0];
+    @$tick->ig->people->blockMyStory($userId, 'InstaVideoComments');
+    return "Hide streams and stories from user!";
+});
 
 //Load config and utils
 require_once __DIR__ . '/utils.php';

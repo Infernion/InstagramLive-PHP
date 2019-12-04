@@ -43,6 +43,16 @@ $(document).ready(function () {
         blackOverlay.fadeOut();
         $('#modal-block').fadeOut();
     });
+    $('#hide').on('click', function () {
+        blackOverlay.fadeIn();
+        $('#modal-hide').fadeIn();
+    });
+    $('#hide-button').on('click', function () {
+        sendRequest('hide', document.getElementById('hide-text').value);
+        document.getElementById('hide-text').value = '';
+        blackOverlay.fadeOut();
+        $('#modal-hide').fadeOut();
+    });
     $('#show-question').on('click', function () {
         blackOverlay.fadeIn();
         $('#modal-question').fadeIn();
