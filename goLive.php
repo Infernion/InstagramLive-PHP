@@ -9,8 +9,8 @@ if (php_sapi_name() !== "cli") {
 }
 
 //Script version constants
-define("scriptVersion", "2.0");
-define("scriptVersionCode", "66");
+define("scriptVersion", "2.1");
+define("scriptVersionCode", "67");
 define("scriptFlavor", "stable");
 
 //Command Line Argument Registration
@@ -176,6 +176,11 @@ registerCommand($commandData, $commandInfo, 'block', "Blocks a user from your ac
     @$tick->ig->people->block($userId);
     return "Blocked a user!";
 });
+registerCommand($commandData, $commandInfo, 'hide', "Hides your streams and stories from a user", "User ID", function (StreamTick $tick) {
+    $userId = $tick->values[0];
+    @$tick->ig->people->blockMyStory($userId, 'InstaVideoComments');
+    return "Hide streams and stories from user!";
+});
 
 //Load config and utils
 require_once __DIR__ . '/utils.php';
@@ -311,7 +316,7 @@ function preparationFlow($helper, $args, $commandData, $streamTotalSec = 0, $aut
 
     //Parse and validate recovery if present
     try {
-        if (Utils::isRecovery() && ($ig->live->getInfo(Utils::getRecovery()['broadcastId'])->getBroadcastStatus() === 'stopped' || $ig->live->getInfo(Utils::getRecovery()['broadcastId'])->getBroadcastStatus() === 'interrupted')) {
+        if (Utils::isRecovery() && ($ig->live->getInfo(Utils::getRecovery()['broadcastId'])->getBroadcastStatus() !== 'interrupted')) {
             Utils::log("Recovery: Detected recovery was outdated, deleting...");
             Utils::deleteRecovery();
             Utils::log("Recovery: Deleted Outdated Recovery!");
@@ -602,10 +607,8 @@ function livestreamingFlow($ig, $broadcastId, $streamUrl, $streamKey, $obsAuto, 
         try {
             $commentsResponse = $ig->live->getComments($broadcastId, $lastCommentTs); //Request comments since the last time we checked
         } catch (Exception $e) {
-            Utils::log("Recovery: Detected outdated recovery, deleting...");
-            Utils::deleteRecovery();
-            Utils::log("Recovery: Deleted outdated recovery, please re-run the script!");
-            exit(0);
+            Utils::log("Error while getting comments:");
+            Utils::dump($e->getMessage(), $ig->client->getLastRequest());
         }
         $systemComments = $commentsResponse->getSystemComments(); //Metric data about comments and likes
         $comments = $commentsResponse->getComments(); //Get the actual comments from the request we made

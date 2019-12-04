@@ -119,6 +119,18 @@ if ($requestUri === '/static/script.js') {
         <button id="block-button" class="btn btn-red br-25 w-100">Block User</button>
     </div>
 </div>
+<div id="modal-hide" class="modal">
+    <div class="modal-header mb-20">
+        <h2 class="dark-blue">Hide Stream & Story from User</h2>
+        <i class="fas fa-times float-right badge badge-red mt-10 close"></i>
+    </div>
+    <p class="mb-20">Please enter the user id to hide your stream from... Please note that this also hides your story from
+        said user; This can be undone in story settings in the app.</p>
+    <div class="btn-group bottom">
+        <input id="hide-text" type="text" class="btn btn-grey br-25 mb-20 w-100" placeholder="Enter user id..."/>
+        <button id="hide-button" class="btn btn-red br-25 w-100">Hide Story from User</button>
+    </div>
+</div>
 <div id="black-overlay"></div>
 <div class="container">
     <nav>
@@ -135,6 +147,7 @@ if ($requestUri === '/static/script.js') {
                 <button id="show-question" class="btn btn-green br-25 mr-10 mb-20">Show question</button>
                 <button id="hidequestion" class="btn btn-green br-25 mr-10 mb-20">Hide question</button>
                 <button id="block" class="btn btn-red br-25 mr-10 mb-20">Block</button>
+                <button id="hide" class="btn btn-red br-25 mr-10 mb-20">Hide Stream</button>
                 <button id="stop-streaming" class="btn btn-red br-25 mr-10 mb-20">Stop streaming</button>
                 <button id="info" class="btn btn-blue br-25 mr-10 mb-20">Info</button>
                 <button id="questions" class="btn btn-blue br-25 mr-10 mb-20">Questions</button>
