@@ -602,10 +602,8 @@ function livestreamingFlow($ig, $broadcastId, $streamUrl, $streamKey, $obsAuto, 
         try {
             $commentsResponse = $ig->live->getComments($broadcastId, $lastCommentTs); //Request comments since the last time we checked
         } catch (Exception $e) {
-            Utils::log("Recovery: Detected outdated recovery, deleting...");
-            Utils::deleteRecovery();
-            Utils::log("Recovery: Deleted outdated recovery, please re-run the script!");
-            exit(0);
+            Utils::log("Error while getting comments:");
+            Utils::dump($e->getMessage(), $ig->client->getLastRequest());
         }
         $systemComments = $commentsResponse->getSystemComments(); //Metric data about comments and likes
         $comments = $commentsResponse->getComments(); //Get the actual comments from the request we made
