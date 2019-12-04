@@ -311,7 +311,7 @@ function preparationFlow($helper, $args, $commandData, $streamTotalSec = 0, $aut
 
     //Parse and validate recovery if present
     try {
-        if (Utils::isRecovery() && ($ig->live->getInfo(Utils::getRecovery()['broadcastId'])->getBroadcastStatus() === 'stopped' || $ig->live->getInfo(Utils::getRecovery()['broadcastId'])->getBroadcastStatus() === 'interrupted')) {
+        if (Utils::isRecovery() && ($ig->live->getInfo(Utils::getRecovery()['broadcastId'])->getBroadcastStatus() !== 'interrupted')) {
             Utils::log("Recovery: Detected recovery was outdated, deleting...");
             Utils::deleteRecovery();
             Utils::log("Recovery: Deleted Outdated Recovery!");
