@@ -347,8 +347,8 @@ function preparationFlow($helper, $args, $commandData, $streamTotalSec = 0, $aut
             $info = $ig->people->getSelfInfo();
             Utils::log("Livestream: Creating livestream...");
             $stream = $ig->live->create(OBS_X, OBS_Y);
-            define('maxTime', $stream->isMaxTimeInSeconds() ? ($stream->getMaxTimeInSeconds() - 100) : 3480);
-            define('heartbeatInterval', $stream->isHeartbeatInterval() ? $stream->getHeartbeatInterval() : 2);
+            @define('maxTime', $stream->isMaxTimeInSeconds() ? ($stream->getMaxTimeInSeconds() - 100) : 3480);
+            @define('heartbeatInterval', $stream->isHeartbeatInterval() ? $stream->getHeartbeatInterval() : 2);
 
             $broadcastId = $stream->getBroadcastId();
             $streamUploadUrl = $stream->getUploadUrl();
