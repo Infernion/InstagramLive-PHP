@@ -158,10 +158,7 @@ class Utils
     public static function promptInput($prompt = '>'): string
     {
         print "$prompt ";
-        $handle = fopen("php://stdin", "r");
-        $input = trim(fgets($handle));
-        fclose($handle);
-        return $input;
+        return stream_get_line(STDIN, 1024, PHP_EOL);
     }
 
     /**
