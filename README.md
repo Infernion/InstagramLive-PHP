@@ -9,13 +9,19 @@ Please read this **entire** document as it has *very* important information abou
 It is suggested you watch [this video](https://www.youtube.com/watch?v=J6lp8g3zQeE) for a step-by-step process on how to install this script.
 
 1. Install PHP, of course...
-2. Goto the [most release release](https://github.com/JRoy/InstagramLive-PHP/releases/latest)
+2. Goto the [most recent release](https://github.com/JRoy/InstagramLive-PHP/releases/latest)
 3. Download the `update.php` file and place it in its own folder
 4. Run the script with `php update.php` and let it install the script
 5. Edit the `USERNAME` and `PASSWORD` inside of the `config.php` file to your Instagram username/password.
 6. Run the `goLive.php` script. (`php goLive.php`)
 #### Video Tutorial
 If you'd like a video version of this tutorial, see [this video](https://www.youtube.com/watch?v=J6lp8g3zQeE).
+#### Docker way
+You can build Docker image and use it with Linux containers.
+1. Run `docker build . -t instagram-live`
+2. Edit `.env` file - insert your credentials.
+3. Run `docker run -it --env-file .env -p 80:80 instagram-live`
+*Note*: this will enable Web Control Panel on `0.0.0.0:80`.
 # Features
 * Robust Installer/Updater
   * To install read the [Live Setup](#live-setup) section
