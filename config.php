@@ -1,7 +1,7 @@
 <?php
 //Instagram Credentials
-define('IG_USERNAME', 'USERNAME');
-define('IG_PASS', 'PASSWORD');
+define('IG_USERNAME', getenv('USERNAME'));
+define('IG_PASS', getenv('PASSWORD'));
 
 /*
  * Settings below this line are optional!
@@ -22,8 +22,8 @@ define('OBS_X', '1080'); //You shouldn't touch this
 define('OBS_Y', '1794'); //You shouldn't touch this
 
 //Web console settings
-define('WEB_HOST', '127.0.0.1'); //The IP to bind the web console to
-define('WEB_PORT', '80'); //The port to bind the web console to
+define('WEB_HOST', getenv('HOST') or '127.0.0.1'); //The IP to bind the web console to
+define('WEB_PORT', getenv('PORT') or '80'); //The port to bind the web console to
 
 define('ANALYTICS_OPT_OUT', false); //Change to true if you want to opt of of anonymous analytics.
 
